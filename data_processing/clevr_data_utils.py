@@ -9,10 +9,8 @@ import numpy as np
 from PIL import Image
 from tqdm import tqdm
 
-import sys
-sys.path.insert(0, '../pickle_files/')
 from pickle_logic import *
-sys.path.pop(0)
+
 
 NUM_CHANNELS = 3
 
@@ -39,6 +37,7 @@ def tensor_to_numpy(tnsr):
 	return tnsr.detach().cpu().numpy()
 
 # Calculates the per channel mean and steddev in the train set.
+# Was used once, now the mean and std are written in clevr_dataset.py.
 def calc_trainset_mean_std(train_path):
 	image_list = glob.glob(train_path + "*")
 
@@ -61,3 +60,8 @@ def calc_trainset_mean_std(train_path):
 	save_pickle(rgb_std, '../pickle_files/rgb_std.pickle')
 
 	return (rgb_mean, rgb_std)
+
+def get_num_correct(preds, labels):
+	pred = preds.max(1, keepdim=True)[1]
+	num_correct = pred.eq(labels.view_as(pred)).sum().item()
+	return num_correct

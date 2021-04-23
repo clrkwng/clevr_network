@@ -23,8 +23,8 @@ class CLEVRDataset(Dataset):
 		self.transform = transforms.Compose([
 			transforms.ToTensor(),
 			transforms.Normalize(
-				mean=[0.46635221, 0.46281539, 0.4559737],
-				std=[0.09720527, 0.09439815, 0.09823581],
+				mean=[0.47035027, 0.46635654, 0.45921228],
+				std=[0.09705831, 0.09378762, 0.09461603],
 			),
 		])
 
