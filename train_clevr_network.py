@@ -2,7 +2,7 @@ from comet_ml import Experiment
 
 import sys
 sys.path.insert(0, 'model/')
-from model_v3 import *
+from model_v5 import *
 sys.path.pop(0)
 sys.path.insert(0, 'data_processing/')
 from clevr_dataset import *
@@ -11,8 +11,10 @@ sys.path.pop(0)
 import torch.optim as optim
 import math
 
-BATCH_SIZE = 128
+BATCH_SIZE = 256
 NUM_BATCHES = math.ceil(1.0 * 10000 / BATCH_SIZE)
+LR = 1e-2
+MOMENTUM = 0.9
 
 experiment = Experiment(api_key='5zqkkwKFbkhDgnFn7Alsby6py', project_name='clevr-network', workspace='clrkwng')
 
@@ -90,16 +92,19 @@ def train(model, criterion, optimizer, train_loader, valid_loader, save_model_pa
 							experiment.log_metric("cylinder_acc", val_cylinder_acc, step=step)
 							experiment.log_metric("sphere_acc", val_sphere_acc, step=step)
 
+							if (val_cube_acc + val_cylinder_acc + val_sphere_acc) / 3 > best_val_acc:
+								best_val_acc = (val_cube_acc + val_cylinder_acc + val_sphere_acc) / 3
+								torch.save(model.state_dict(), save_model_path)
+
 			epoch_loss = round(total_loss/NUM_BATCHES, 6)
 			t.set_description(f"Epoch: {epoch}/{num_epochs}, Loss: {epoch_loss}, Cube acc: {cube_acc},\
 													Cylinder acc: {cylinder_acc}, Sphere acc: {sphere_acc}")
 
-			torch.save(model.state_dict(), save_model_path)
 
 def main():
-	model = WangNetV3(ResBlock, [1], 3).cuda()
+	model = MiniResNet18().cuda()
 	criterion = nn.CrossEntropyLoss()
-	optimizer = optim.Adam(model.parameters(), lr=1e-2)
+	optimizer = optim.SGD(model.parameters(), lr=LR, momentum=MOMENTUM)
 
 	train_dataset = CLEVRDataset('../clevr-dataset-gen/output/train/')
 	train_loader = torch.utils.data.DataLoader(dataset=train_dataset, batch_size=BATCH_SIZE, shuffle=True)
@@ -108,7 +113,7 @@ def main():
 	valid_loader = torch.utils.data.DataLoader(dataset=valid_dataset, batch_size=BATCH_SIZE, shuffle=True)
 
 	save_model_path = 'pickle_files/clevr_model_state_dict.pt'
-	num_epochs = 200
+	num_epochs = 5000
 
 	train(model, criterion, optimizer, train_loader, valid_loader, save_model_path, num_epochs)
 

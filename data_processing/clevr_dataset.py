@@ -1,7 +1,7 @@
 """
 This is a custom dataset for the CLEVR dataset. Each data point is
 a CLEVR array with label of (num_cubes, num_cylinders, num_spheres).
-Each CLEVR array is (240x320x4), where 4 channels are RGBA.
+Each CLEVR array is (256x256x3), where 3 channels are RGB.
 """
 
 import glob
@@ -42,4 +42,5 @@ class CLEVRDataset(Dataset):
 		return (im, label)
 
 	def __len__(self):
+		# Note: can hardcode the length that is returned here, to restrict which data is returned.
 		return self.data_len
